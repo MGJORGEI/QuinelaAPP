@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Ruleta DrinkTeam</title>
+    <script src="js/Winwheel.min.js"></script>
+
+    <script src="js/TweenMax.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/footer.css" />
+    <script src="js/sweetalert.min.js"></script>
+    <link href="css/sweetalert.css" rel="stylesheet" />
+
+    <meta property="og:url" content="https://oscaruhp.github.io/Laruleta/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="La ruleta (Rifa cosas)" />
+    <meta property="og:description"
+        content="Con esta ruleta online puedes rifar lo que gustes, solo llena la lista y genera tu ruleta" />
+
+</head>
+
+<body style="background-color:#e1c396;">
+
+    <form id="form1" runat="server">
+
+        <div>
+            <style>
+                #canvasContainer {
+                    background-image: url('img/saviaBadan.png');
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    /* width: 700px; */
+                    /* height: 700px; */
+                    margin: 100px 0;
+                    cursor: pointer;
+                    color: #8d1c3d;
+
+                }
+
+                .card h4 {
+                    color: #262626;
+                }
+
+                .bg-badan {
+                    background: #23D9B7;
+                    
+                }
+
+                .bg-badan .btn {
+                    background: #AB05F2;
+                }
+
+                .img-wrapper {
+                    width: 100%;
+                }
+
+                .img-wrapper img {
+                    width: 100%;
+                }
+
+            </style>
+
+            <div class="container mt-5">
+
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <div class="card bg-light text-dark">
+                            <div class="card-body">
+
+                                <h4 class="card-title">Quinela DrinkTeam
+                                    ||  Lista Equipos:</h4>
+
+                                <p> Instrucciones: Coloca los equipos que participaran en la quinela para poder jugar</p>
+                                <p>Nota: todos los resultados son al azar</p>
+                                <textarea id="ListaElementos" class="form-control" rows="8"></textarea>
+                                <br />
+                                <input type="button" onclick="leerElementos()" class="btn btn-success btn-lg"
+                                    value="Generar Ruleta" /><br />
+                            </div>
+                        </div>
+                        <input id="bigButton" class="btn-block btn-lg btn mt-5"
+                            onclick="objRuleta.startAnimation(); this.disabled=true;" value="Girar" type="button" />
+
+                    </div>
+                    <!-- <div class="col-6">
+                        <section class="img-wrapper">
+                            <img src="./img/saviabadan.png" alt="">
+                        </section>
+                    </div> -->
+                    <div class="col-12 text-center">
+                        <div id="canvasContainer" onclick="objRuleta.startAnimation()">
+                            <canvas id='Ruleta' width='1000' height='1000'>
+
+                                Canvas not supported, use another browser.
+                            </canvas>
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <script>
+                var objRuleta;
+                var winningSegment;
+                var distnaciaX = 150;
+                var distnaciaY = 50;
+                var ctx;
+                function Mensaje() {
+                    winningSegment = objRuleta.getIndicatedSegment();
+                    console.log(winningSegment);
+
+                    // SonidoFinal();
+                    swal({
+                        title: " ¡ " + winningSegment.text + " !",
+
+                        imageUrl: "img/LOGO.png",
+                        showCancelButton: true,
+                        confirmButtonColor: "#e74c3c",
+                        confirmButtonText: "Ok,volver a Girar",
+                        cancelButtonText: "Quitar elemento",
+                        closeOnConfirm: true,
+                        closeOnCancel: true
+                    },
+                        function (isConfirm) {
+                            if (isConfirm) {
+
+                            } else {
+
+                                $('#ListaElementos').val($('#ListaElementos').val().replace(winningSegment.text, ""));
+                                leerElementos();
+                            }
+
+                            objRuleta.stopAnimation(false);
+                            objRuleta.rotationAngle = 0;
+                            objRuleta.draw();
+                            DibujarTriangulo();
+                            bigButton.disabled = false;
+                        });
+
+                }
+
+                function DibujarTriangulo() {
+                    distnaciaX = 300;
+                    distnaciaY = 5;
+                    ctx = objRuleta.ctx;
+                    ctx.strokeStyle = 'navy';
+                    ctx.fillStyle = '#000000';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(distnaciaX + 170, distnaciaY + 5);
+                    ctx.lineTo(distnaciaX + 230, distnaciaY + 5);
+                    ctx.lineTo(distnaciaX + 200, distnaciaY + 40);
+                    ctx.lineTo(distnaciaX + 171, distnaciaY + 5);
+                    ctx.stroke();
+                    ctx.fill();
+                }
+
+                function DibujarRuleta(ArregloElementos) {
+
+                    objRuleta = new Winwheel({
+                        'canvasId': 'Ruleta',
+                        'numSegments': ArregloElementos.length,
+                        'outerRadius': 500,
+                        'innerRadius': 250,
+                        'segments': ArregloElementos,
+                        'animation':
+                        {
+                            'type': 'spinToStop',
+                            'duration': 7,
+                            'spins': 25,
+                            'callbackFinished': 'Mensaje()',
+                            'callbackAfter': 'DibujarTriangulo()'
+                        },
+
+                    });
+
+                    DibujarTriangulo();
+                }
+                function leerElementos() {
+                    txtListaElementos = $('#ListaElementos').val().trim();
+                    var Elementos = txtListaElementos.split('\n');
+                    var ElementosRuleta = [];
+                    var contador = 0;
+                    Elementos.forEach(function (Elemento) {
+                        contador++;
+                        if (Elemento) {
+                            if ((contador % 2) === 0) {
+                                ElementosRuleta.push({
+                                    'fillStyle': "#505AFC",
+                                    'text': Elemento
+                                });
+                            } else {
+                                ElementosRuleta.push({
+                                    'fillStyle': "#4048C9",
+                                    'text': Elemento
+                                });
+                            }
+                        }
+                    });
+                    DibujarRuleta(ElementosRuleta);
+                }
+                leerElementos();
+                var final = new Audio('alarma2.mp3');  // Create audio object and load desired file.
+                function SonidoFinal() {
+                    final.pause();
+                    final.currentTime = 0;
+                    final.play();
+                }
+
+            </script>
+        </div>
+    </form>
+
+
+
+</body>
+<!-- Footer -->
+<section id="footer">
+    <div class="container">
+        <div class="row text-center text-xs-center text-sm-left text-md-left">
+            <div class="col-xs-12 col-sm-4 col-md-4">
+                <h5>Proyecto</h5>
+                <ul class="list-unstyled quick-links">
+                    <li><a href="index.html"><i class="fa fa-angle-double-right"></i>Inicio</a></li>
+                    <li><a href="https://github.com/MGJORGEI"><i class="fa fa-angle-double-right"></i>Github</a></li>
+                    <li><a href="https://www.facebook.com/MTECNOLOGIC"><i class="fa fa-angle-double-right"></i>Facebook</a></li>
+                    <li><a href="mailto:mtecjm@gmail.com"><i class="fa fa-angle-double-right"></i>correo</a></li>
+                    <li><a href="https://www.instagram.com/mtecnologic/"><i class="fa fa-angle-double-right"></i>Instagram</a></li>
+                </ul>
+            </div>
+        <div class="row">
+            <div class="col-xs-12 col-sm-12 col-md-12 mt-2 mt-sm-2 text-center text-white">
+                <p><u><a href="https://github.com/MGJORGEI">M-TEC</a></u> by Jorge Montero</p>
+                <p class="h6">© All right Reversed.<a class="text-green ml-2" href="https://github.com/MGJORGEI" target="_blank">Sunlimetech</a></p>
+                <img src="img/laeeb_full.png">
+            </div>
+            <hr>
+        </div>	
+    </div>
+</section>
+<!-- ./Footer -
+</html>
